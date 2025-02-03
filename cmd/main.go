@@ -1,16 +1,15 @@
 package main
 
 import (
-	"context"
 	"log"
 
 	"github.com/gfmanica/splitz-backend/cmd/api"
 	"github.com/gfmanica/splitz-backend/config"
-	"github.com/jackc/pgx/v5"
+	"github.com/gfmanica/splitz-backend/db"
 )
 
 func main() {
-	conn, err := pgx.Connect(context.Background(), config.Envs.DatabaseURL)
+	db, err := db.NewPostgreSqlStorage(config.Envs.DatabaseURL)
 
 	if err != nil {
 		log.Fatal(err)
@@ -20,7 +19,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	server := api.NewAPIServer(":8080", conn)
+	server := api.NewAPIServer(":8080", db)
 
 	if err := server.Run(); err != nil {
 		log.Fatal(err)

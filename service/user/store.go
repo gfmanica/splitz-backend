@@ -1,23 +1,22 @@
 package user
 
 import (
-	"context"
+	"database/sql"
 	"fmt"
 
 	"github.com/gfmanica/splitz-backend/types"
-	"github.com/jackc/pgx/v5"
 )
 
 type Store struct {
-	db *pgx.Conn
+	db *sql.DB
 }
 
-func NewStore(db *pgx.Conn) *Store {
+func NewStore(db *sql.DB) *Store {
 	return &Store{db: db}
 }
 
 func (s *Store) GetUserByEmail(email string) (*types.User, error) {
-	rows, err := s.db.Query(context.Background(), "SELECT * FROM users WHERE email = ?", email)
+	rows, err := s.db.Query("SELECT * FROM users WHERE email = ?", email)
 
 	if err != nil {
 		return nil, err
@@ -41,7 +40,7 @@ func (s *Store) GetUserByEmail(email string) (*types.User, error) {
 }
 
 func (s *Store) GetUserByID(id int) (*types.User, error) {
-	rows, err := s.db.Query(context.Background(), "SELECT * FROM users WHERE id = ?", id)
+	rows, err := s.db.Query("SELECT * FROM users WHERE id = ?", id)
 
 	if err != nil {
 		return nil, err
@@ -65,7 +64,7 @@ func (s *Store) GetUserByID(id int) (*types.User, error) {
 }
 
 func (s *Store) CreateUser(u types.User) error {
-	_, err := s.db.Exec(context.Background(), "INSERT INTO users (name, email, password) VALUES (?, ?, ?)", u.Name, u.Email, u.Password)
+	_, err := s.db.Exec("INSERT INTO users (name, email, password) VALUES (?, ?, ?)", u.Name, u.Email, u.Password)
 
 	if err != nil {
 		return err
@@ -74,7 +73,7 @@ func (s *Store) CreateUser(u types.User) error {
 	return nil
 }
 
-func scanRowIntoUser(rows pgx.Rows) (*types.User, error) {
+func scanRowIntoUser(rows *sql.Rows) (*types.User, error) {
 	u := &types.User{}
 
 	err := rows.Scan(

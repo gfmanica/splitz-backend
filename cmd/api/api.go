@@ -1,20 +1,20 @@
 package api
 
 import (
+	"database/sql"
 	"log"
 	"net/http"
 
 	"github.com/gfmanica/splitz-backend/service/user"
 	"github.com/gorilla/mux"
-	"github.com/jackc/pgx/v5"
 )
 
 type APIServer struct {
 	addr string
-	db   *pgx.Conn
+	db   *sql.DB
 }
 
-func NewAPIServer(add string, db *pgx.Conn) *APIServer {
+func NewAPIServer(add string, db *sql.DB) *APIServer {
 	return &APIServer{
 		addr: add,
 		db:   db,
