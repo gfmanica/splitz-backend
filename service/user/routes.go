@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/gfmanica/splitz-backend/config"
 	"github.com/gfmanica/splitz-backend/service/auth"
 	"github.com/gfmanica/splitz-backend/types"
 	"github.com/gfmanica/splitz-backend/utils"
@@ -24,7 +25,49 @@ func (h *Handler) RegisterRoutes(router *mux.Router) {
 	router.HandleFunc("/register", h.handleRegister).Methods("POST")
 }
 
-func (h *Handler) handleLogin(w http.ResponseWriter, r *http.Request) {}
+func (h *Handler) handleLogin(w http.ResponseWriter, r *http.Request) {
+	// get the JSON payload
+	var payload types.LoginUserPayload
+
+	if err := utils.ParseJSON(r, &payload); err != nil {
+		utils.WriterError(w, http.StatusBadRequest, err)
+	}
+
+	// validate the payload
+	if err := utils.Validate.Struct(payload); err != nil {
+		error := err.(validator.ValidationErrors)
+
+		utils.WriterError(w, http.StatusBadRequest, fmt.Errorf("invalid payload: %s", error))
+
+		return
+	}
+
+	u, err := h.store.GetUserByEmail(payload.Email)
+
+	if err != nil {
+		utils.WriterError(w, http.StatusBadRequest, fmt.Errorf("user with email %s or password  not found", payload.Email))
+
+		return
+	}
+
+	fmt.Print(u.Email)
+	if !auth.ComparePassword(u.Password, []byte(payload.Password)) {
+		utils.WriterError(w, http.StatusBadRequest, fmt.Errorf("user with email %s or password  not found", payload.Email))
+
+		return
+	}
+
+	secret := []byte(config.Envs.JWTSecret)
+	token, err := auth.CreateJWT(secret, u.ID)
+
+	if err != nil {
+		utils.WriterError(w, http.StatusInternalServerError, err)
+
+		return
+	}
+
+	utils.WriteJSON(w, http.StatusOK, map[string]string{"token": token})
+}
 
 func (h *Handler) handleRegister(w http.ResponseWriter, r *http.Request) {
 	// get the JSON payload
