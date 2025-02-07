@@ -9,6 +9,7 @@ CREATE TABLE "bill_payment"(
     "id_payment" INTEGER NOT NULL PRIMARY KEY,
     "vl_payment" DECIMAL(10, 2) NOT NULL,
     "dt_payment" DATE NOT NULL,
+    "ds_person" VARCHAR(255) NOT NULL,
     "fg_payed" BOOLEAN NOT NULL DEFAULT FALSE,
     "fg_custom_payment" BOOLEAN NOT NULL DEFAULT FALSE,
     "id_bill" INTEGER NOT NULL,
