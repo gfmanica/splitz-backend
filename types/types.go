@@ -13,6 +13,13 @@ type LoginUserPayload struct {
 	Password string `json:"password" validate:"required"`
 }
 
+type CreateBillPayload struct {
+	DsBill   string        `json:"dsBill" validate:"required"`
+	VlBill   float64       `json:"vlBill" validate:"required,gt=0"`
+	QtPerson float64       `json:"qtPerson" validate:"required,gt=0"`
+	Payment  []BillPayment `json:"payment"`
+}
+
 type User struct {
 	ID        int       `json:"id"`
 	Name      string    `json:"name"`
@@ -30,7 +37,7 @@ type UserStore interface {
 type BillStore interface {
 	GetBills() ([]Bill, error)
 	GetBillById(id int) (*Bill, error)
-	// CreateBill(b Bill) error
+	CreateBill(b Bill) error
 	// UpdateBill(b Bill) error
 }
 

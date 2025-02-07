@@ -2,6 +2,7 @@ package bill
 
 import (
 	"database/sql"
+	"fmt"
 
 	"github.com/gfmanica/splitz-backend/types"
 )
@@ -58,6 +59,17 @@ func (s *Store) GetBillById(id int) (*types.Bill, error) {
 	}
 
 	return bill, nil
+}
+
+func (s *Store) CreateBill(bill types.Bill) error {
+	_, err := s.db.Exec("INSERT INTO bill (ds_bill, vl_bill, qt_person) VALUES ($1, $2, $3)", bill.DsBill, bill.VlBill, bill.QtPerson)
+
+	fmt.Println(err)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func scanRowIntoBill(rows *sql.Rows) (*types.Bill, error) {

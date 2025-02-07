@@ -1,12 +1,14 @@
 package bill
 
 import (
+	"fmt"
 	"net/http"
 	"strconv"
 
 	"github.com/gfmanica/splitz-backend/service/auth"
 	"github.com/gfmanica/splitz-backend/types"
 	"github.com/gfmanica/splitz-backend/utils"
+	"github.com/go-playground/validator/v10"
 	"github.com/gorilla/mux"
 )
 
@@ -23,8 +25,9 @@ func NewHandler(store types.BillStore, userStore types.UserStore) *Handler {
 }
 
 func (h *Handler) RegisterRoutes(router *mux.Router) {
-	router.HandleFunc("/bill/{id}", auth.WithJWTAuth(h.handleGetBill, h.userStore)).Methods(http.MethodGet)
 	router.HandleFunc("/bill", auth.WithJWTAuth(h.handleGetBills, h.userStore)).Methods(http.MethodGet)
+	router.HandleFunc("/bill/{id}", auth.WithJWTAuth(h.handleGetBill, h.userStore)).Methods(http.MethodGet)
+	router.HandleFunc("/bill", auth.WithJWTAuth(h.handleCreateBill, h.userStore)).Methods(http.MethodPost)
 }
 
 func (h *Handler) handleGetBills(w http.ResponseWriter, r *http.Request) {
@@ -50,4 +53,36 @@ func (h *Handler) handleGetBill(w http.ResponseWriter, r *http.Request) {
 	}
 
 	utils.WriteJSON(w, http.StatusOK, bill)
+}
+
+func (h *Handler) handleCreateBill(w http.ResponseWriter, r *http.Request) {
+	// get the JSON payload
+	var payload types.CreateBillPayload
+
+	if err := utils.ParseJSON(r, &payload); err != nil {
+		utils.WriterError(w, http.StatusBadRequest, err)
+	}
+
+	if err := utils.Validate.Struct(payload); err != nil {
+		error := err.(validator.ValidationErrors)
+
+		utils.WriterError(w, http.StatusBadRequest, fmt.Errorf("invalid payload: %s", error))
+
+		return
+	}
+
+	err := h.store.CreateBill(types.Bill{
+		DsBill:   payload.DsBill,
+		VlBill:   payload.VlBill,
+		QtPerson: payload.QtPerson,
+	})
+
+	if err != nil {
+		utils.WriterError(w, http.StatusBadRequest, err)
+
+		return
+	}
+
+	utils.WriteJSON(w, http.StatusCreated, nil)
+
 }

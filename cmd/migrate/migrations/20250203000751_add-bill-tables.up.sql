@@ -1,12 +1,12 @@
 CREATE TABLE "bill"(
-    "id_bill" INTEGER NOT NULL PRIMARY KEY,
+    "id_bill" SERIAL PRIMARY KEY,
     "ds_bill" VARCHAR(255) NOT NULL,
     "vl_bill" DECIMAL(10, 2) NOT NULL,
     "qt_person" INTEGER NOT NULL
 );
 
 CREATE TABLE "bill_payment"(
-    "id_payment" INTEGER NOT NULL PRIMARY KEY,
+    "id_payment" SERIAL PRIMARY KEY,
     "vl_payment" DECIMAL(10, 2) NOT NULL,
     "dt_payment" DATE NOT NULL,
     "ds_person" VARCHAR(255) NOT NULL,
