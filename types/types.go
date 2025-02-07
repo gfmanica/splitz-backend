@@ -29,7 +29,7 @@ type UserStore interface {
 
 type BillStore interface {
 	GetBills() ([]Bill, error)
-	// GetBillById(id int) (*Bill, error)
+	GetBillById(id int) (*Bill, error)
 	// CreateBill(b Bill) error
 	// UpdateBill(b Bill) error
 }

@@ -2,6 +2,7 @@ package bill
 
 import (
 	"net/http"
+	"strconv"
 
 	"github.com/gfmanica/splitz-backend/service/auth"
 	"github.com/gfmanica/splitz-backend/types"
@@ -22,6 +23,7 @@ func NewHandler(store types.BillStore, userStore types.UserStore) *Handler {
 }
 
 func (h *Handler) RegisterRoutes(router *mux.Router) {
+	router.HandleFunc("/bill/{id}", auth.WithJWTAuth(h.handleGetBill, h.userStore)).Methods(http.MethodGet)
 	router.HandleFunc("/bill", auth.WithJWTAuth(h.handleGetBills, h.userStore)).Methods(http.MethodGet)
 }
 
@@ -34,4 +36,18 @@ func (h *Handler) handleGetBills(w http.ResponseWriter, r *http.Request) {
 	}
 
 	utils.WriteJSON(w, http.StatusOK, bills)
+}
+
+func (h *Handler) handleGetBill(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	id, _ := strconv.Atoi(vars["id"])
+
+	bill, err := h.store.GetBillById(id)
+
+	if err != nil {
+		utils.WriterError(w, http.StatusInternalServerError, err)
+		return
+	}
+
+	utils.WriteJSON(w, http.StatusOK, bill)
 }

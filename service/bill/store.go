@@ -14,7 +14,6 @@ func NewStore(db *sql.DB) *Store {
 	return &Store{db: db}
 }
 
-
 func (s *Store) GetBills() ([]types.Bill, error) {
 	rows, err := s.db.Query("SELECT * FROM bill")
 
@@ -35,7 +34,30 @@ func (s *Store) GetBills() ([]types.Bill, error) {
 	}
 
 	return bills, nil
+}
 
+func (s *Store) GetBillById(id int) (*types.Bill, error) {
+	rows, err := s.db.Query("SELECT * FROM bill WHERE id_bill = $1", id)
+
+	if err != nil {
+		return nil, err
+	}
+
+	bill := &types.Bill{}
+
+	for rows.Next() {
+		bill, err = scanRowIntoBill(rows)
+
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	if bill.IdBill == 0 {
+		return nil, nil
+	}
+
+	return bill, nil
 }
 
 func scanRowIntoBill(rows *sql.Rows) (*types.Bill, error) {
