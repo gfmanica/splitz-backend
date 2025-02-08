@@ -6,6 +6,7 @@ import (
 	"net/http"
 
 	"github.com/gfmanica/splitz-backend/service/bill"
+	"github.com/gfmanica/splitz-backend/service/ride"
 	"github.com/gfmanica/splitz-backend/service/user"
 	"github.com/gorilla/mux"
 )
@@ -33,6 +34,10 @@ func (s *APIServer) Run() error {
 	billStore := bill.NewStore(s.db)
 	billHandler := bill.NewHandler(billStore, userStore)
 	billHandler.RegisterRoutes(subrouter)
+
+	rideStore := ride.NewStore(s.db)
+	rideHandler := *ride.NewHandler(rideStore, userStore)
+	rideHandler.RegisterRoutes(subrouter)
 
 	log.Println("Starting server on", s.addr)
 

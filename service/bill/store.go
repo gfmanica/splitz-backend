@@ -51,7 +51,7 @@ func (s *Store) GetBillById(id int) (*types.Bill, error) {
 		}
 	}
 
-	paymentRows, err := s.db.Query("SELECT id_payment, vl_payment,  ds_person, fg_payed, fg_custom_payment, id_bill FROM bill_payment WHERE id_bill = $1", id)
+	paymentRows, err := s.db.Query("SELECT id_bill_payment, vl_payment,  ds_person, fg_payed, fg_custom_payment, id_bill FROM bill_payment WHERE id_bill = $1", id)
 	if err != nil {
 		return nil, err
 	}
@@ -59,7 +59,7 @@ func (s *Store) GetBillById(id int) (*types.Bill, error) {
 	bill.Payments = make([]types.BillPayment, 0)
 	for paymentRows.Next() {
 		payment := types.BillPayment{}
-		err := paymentRows.Scan(&payment.IdPayment, &payment.VlPayment, &payment.DsPerson, &payment.FgPayed, &payment.FgCustomPayment, &payment.IdBill)
+		err := paymentRows.Scan(&payment.IdBillPayment, &payment.VlPayment, &payment.DsPerson, &payment.FgPayed, &payment.FgCustomPayment, &payment.IdBill)
 		if err != nil {
 			return nil, err
 		}
@@ -157,7 +157,7 @@ func (s *Store) UpdateBill(billPayload types.Bill) error {
 	customPaymentCount := 0
 
 	for _, payment := range billPayload.Payments {
-		if payment.FgCustomPayment || payment.IdPayment == 0 {
+		if payment.FgCustomPayment || payment.IdBillPayment == 0 {
 			totalVlPayments += payment.VlPayment
 			customPaymentCount++
 		}
