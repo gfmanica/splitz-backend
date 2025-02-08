@@ -17,6 +17,17 @@ type Handler struct {
 	userStore types.UserStore
 }
 
+func convertToBillPayments(createPayments []types.CreatePaymentPayload) []types.BillPayment {
+	billPayments := make([]types.BillPayment, len(createPayments))
+	for i, createPayment := range createPayments {
+		billPayments[i] = types.BillPayment{
+			DsPerson:  createPayment.DsPerson,
+			VlPayment: createPayment.VlPayment,
+		}
+	}
+	return billPayments
+}
+
 func NewHandler(store types.BillStore, userStore types.UserStore) *Handler {
 	return &Handler{
 		store:     store,
@@ -65,7 +76,6 @@ func (h *Handler) handleCreateBill(w http.ResponseWriter, r *http.Request) {
 
 	if err := utils.Validate.Struct(payload); err != nil {
 		error := err.(validator.ValidationErrors)
-
 		utils.WriterError(w, http.StatusBadRequest, fmt.Errorf("invalid payload: %s", error))
 
 		return
@@ -75,6 +85,7 @@ func (h *Handler) handleCreateBill(w http.ResponseWriter, r *http.Request) {
 		DsBill:   payload.DsBill,
 		VlBill:   payload.VlBill,
 		QtPerson: payload.QtPerson,
+		Payments: convertToBillPayments(payload.Payments),
 	})
 
 	if err != nil {

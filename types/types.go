@@ -14,10 +14,15 @@ type LoginUserPayload struct {
 }
 
 type CreateBillPayload struct {
-	DsBill   string        `json:"dsBill" validate:"required"`
-	VlBill   float64       `json:"vlBill" validate:"required,gt=0"`
-	QtPerson float64       `json:"qtPerson" validate:"required,gt=0"`
-	Payment  []BillPayment `json:"payment"`
+	DsBill   string                 `json:"dsBill" validate:"required"`
+	VlBill   float64                `json:"vlBill" validate:"required"`
+	QtPerson float64                `json:"qtPerson" validate:"required"`
+	Payments  []CreatePaymentPayload `json:"payments,omitempty"`
+}
+
+type CreatePaymentPayload struct {
+	DsPerson string  `json:"dsPerson" validate:"required"`
+	VlPayment   float64 `json:"vlPayment" validate:"required"`
 }
 
 type User struct {
@@ -46,6 +51,7 @@ type Bill struct {
 	DsBill   string  `json:"dsBill"`
 	VlBill   float64 `json:"vlBill"`
 	QtPerson float64 `json:"qtBill"`
+	Payments []BillPayment
 }
 
 type BillPayment struct {

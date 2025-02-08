@@ -8,7 +8,7 @@ CREATE TABLE "bill"(
 CREATE TABLE "bill_payment"(
     "id_payment" SERIAL PRIMARY KEY,
     "vl_payment" DECIMAL(10, 2) NOT NULL,
-    "dt_payment" DATE NOT NULL,
+    "dt_payment" DATE,
     "ds_person" VARCHAR(255) NOT NULL,
     "fg_payed" BOOLEAN NOT NULL DEFAULT FALSE,
     "fg_custom_payment" BOOLEAN NOT NULL DEFAULT FALSE,
