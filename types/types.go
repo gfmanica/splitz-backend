@@ -1,6 +1,8 @@
 package types
 
-import "time"
+import (
+	"time"
+)
 
 type RegisterUserPayload struct {
 	Name     string `json:"name" validate:"required"`
@@ -14,15 +16,10 @@ type LoginUserPayload struct {
 }
 
 type CreateBillPayload struct {
-	DsBill   string                 `json:"dsBill" validate:"required"`
-	VlBill   float64                `json:"vlBill" validate:"required"`
-	QtPerson float64                `json:"qtPerson" validate:"required"`
-	Payments  []CreatePaymentPayload `json:"payments,omitempty"`
-}
-
-type CreatePaymentPayload struct {
-	DsPerson string  `json:"dsPerson" validate:"required"`
-	VlPayment   float64 `json:"vlPayment" validate:"required"`
+	DsBill   string        `json:"dsBill" validate:"required"`
+	VlBill   float64       `json:"vlBill" validate:"required"`
+	QtPerson float64       `json:"qtPerson" validate:"required"`
+	Payments []BillPayment `json:"payments,omitempty"`
 }
 
 type User struct {
@@ -43,23 +40,22 @@ type BillStore interface {
 	GetBills() ([]Bill, error)
 	GetBillById(id int) (*Bill, error)
 	CreateBill(b Bill) error
-	// UpdateBill(b Bill) error
+	UpdateBill(b Bill) error
 }
 
 type Bill struct {
-	IdBill   int     `json:"idBill"`
-	DsBill   string  `json:"dsBill"`
-	VlBill   float64 `json:"vlBill"`
-	QtPerson float64 `json:"qtBill"`
-	Payments []BillPayment
+	IdBill   int           `json:"idBill"`
+	DsBill   string        `json:"dsBill"`
+	VlBill   float64       `json:"vlBill"`
+	QtPerson float64       `json:"qtPerson"`
+	Payments []BillPayment `json:"payments"`
 }
 
 type BillPayment struct {
-	IdPayment       int       `json:"idPayment"`
-	IdBill          int       `json:"idBill"`
-	VlPayment       float64   `json:"vlPayment"`
-	DtPayment       time.Time `json:"dtPayment"`
-	FgPayed         bool      `json:"fgPayed"`
-	FgCustomPayment bool      `json:"fgCustomPayment"`
-	DsPerson        string    `json:"dsPerson"`
+	IdPayment       int          `json:"idPayment"`
+	IdBill          int          `json:"idBill"`
+	VlPayment       float64      `json:"vlPayment"`
+	FgPayed         bool         `json:"fgPayed"`
+	FgCustomPayment bool         `json:"fgCustomPayment,omitempty"`
+	DsPerson        string       `json:"dsPerson"`
 }

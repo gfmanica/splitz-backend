@@ -17,8 +17,9 @@ type Handler struct {
 	userStore types.UserStore
 }
 
-func convertToBillPayments(createPayments []types.CreatePaymentPayload) []types.BillPayment {
+func convertToBillPayments(createPayments []types.BillPayment) []types.BillPayment {
 	billPayments := make([]types.BillPayment, len(createPayments))
+
 	for i, createPayment := range createPayments {
 		billPayments[i] = types.BillPayment{
 			DsPerson:  createPayment.DsPerson,
@@ -39,6 +40,7 @@ func (h *Handler) RegisterRoutes(router *mux.Router) {
 	router.HandleFunc("/bill", auth.WithJWTAuth(h.handleGetBills, h.userStore)).Methods(http.MethodGet)
 	router.HandleFunc("/bill/{id}", auth.WithJWTAuth(h.handleGetBill, h.userStore)).Methods(http.MethodGet)
 	router.HandleFunc("/bill", auth.WithJWTAuth(h.handleCreateBill, h.userStore)).Methods(http.MethodPost)
+	router.HandleFunc("/bill", auth.WithJWTAuth(h.handleUpdateBill, h.userStore)).Methods(http.MethodPut)
 }
 
 func (h *Handler) handleGetBills(w http.ResponseWriter, r *http.Request) {
@@ -59,6 +61,35 @@ func (h *Handler) handleGetBill(w http.ResponseWriter, r *http.Request) {
 	bill, err := h.store.GetBillById(id)
 
 	if err != nil {
+		utils.WriterError(w, http.StatusInternalServerError, err)
+		return
+	}
+
+	utils.WriteJSON(w, http.StatusOK, bill)
+}
+func (h *Handler) handleUpdateBill(w http.ResponseWriter, r *http.Request) {
+	var payload types.Bill
+
+	if err := utils.ParseJSON(r, &payload); err != nil {
+		utils.WriterError(w, http.StatusBadRequest, err)
+		return
+	}
+
+	if err := utils.Validate.Struct(payload); err != nil {
+		error := err.(validator.ValidationErrors)
+		utils.WriterError(w, http.StatusBadRequest, fmt.Errorf("invalid payload: %s", error))
+		return
+	}
+
+	bill := types.Bill{
+		IdBill:   payload.IdBill,
+		DsBill:   payload.DsBill,
+		VlBill:   payload.VlBill,
+		QtPerson: payload.QtPerson,
+		Payments: convertToBillPayments(payload.Payments),
+	}
+
+	if err := h.store.UpdateBill(bill); err != nil {
 		utils.WriterError(w, http.StatusInternalServerError, err)
 		return
 	}

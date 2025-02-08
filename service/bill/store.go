@@ -51,7 +51,7 @@ func (s *Store) GetBillById(id int) (*types.Bill, error) {
 		}
 	}
 
-	paymentRows, err := s.db.Query("SELECT id_payment, vl_payment, dt_payment, ds_person, fg_payed, fg_custom_payment FROM bill_payment WHERE id_bill = $1", id)
+	paymentRows, err := s.db.Query("SELECT id_payment, vl_payment,  ds_person, fg_payed, fg_custom_payment, id_bill FROM bill_payment WHERE id_bill = $1", id)
 	if err != nil {
 		return nil, err
 	}
@@ -59,7 +59,7 @@ func (s *Store) GetBillById(id int) (*types.Bill, error) {
 	bill.Payments = make([]types.BillPayment, 0)
 	for paymentRows.Next() {
 		payment := types.BillPayment{}
-		err := paymentRows.Scan(&payment.IdPayment, &payment.VlPayment, &payment.DtPayment, &payment.DsPerson, &payment.FgPayed, &payment.FgCustomPayment)
+		err := paymentRows.Scan(&payment.IdPayment, &payment.VlPayment, &payment.DsPerson, &payment.FgPayed, &payment.FgCustomPayment, &payment.IdBill)
 		if err != nil {
 			return nil, err
 		}
@@ -87,6 +87,8 @@ func (s *Store) CreateBill(billPayload types.Bill) error {
 		return err
 	}
 
+	fmt.Print(id)
+
 	totalVlPayments := 0.0
 
 	for _, payment := range billPayload.Payments {
@@ -98,6 +100,7 @@ func (s *Store) CreateBill(billPayload types.Bill) error {
 	for i := 0; i < int(billPayload.QtPerson); i++ {
 		dsPerson := fmt.Sprintf("Pessoa %d", i+1)
 		vlPayment := personVlBill
+		fgCustomPayment := false
 
 		if i < len(billPayload.Payments) {
 			if billPayload.Payments[i].DsPerson != "" {
@@ -105,16 +108,82 @@ func (s *Store) CreateBill(billPayload types.Bill) error {
 			}
 			if billPayload.Payments[i].VlPayment != 0 {
 				vlPayment = billPayload.Payments[i].VlPayment
+				fgCustomPayment = true
 			}
 		}
 
-		_, err := tx.Exec("INSERT INTO bill_payment (vl_payment, dt_payment, ds_person, fg_payed, fg_custom_payment, id_bill) VALUES ($1, $2, $3, $4, $5, $6)",
+		_, err := tx.Exec("INSERT INTO bill_payment (vl_payment, ds_person, fg_payed, fg_custom_payment, id_bill) VALUES ($1, $2, $3, $4, $5)",
 			vlPayment,
-			sql.NullTime{},
 			dsPerson,
 			false,
-			false,
+			fgCustomPayment,
 			id,
+		)
+		if err != nil {
+			tx.Rollback()
+			return err
+		}
+	}
+
+	err = tx.Commit()
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (s *Store) UpdateBill(billPayload types.Bill) error {
+	tx, err := s.db.Begin()
+	if err != nil {
+		return err
+	}
+
+	_, err = tx.Exec("UPDATE bill SET ds_bill = $1, vl_bill = $2, qt_person = $3 WHERE id_bill = $4",
+		billPayload.DsBill, billPayload.VlBill, billPayload.QtPerson, billPayload.IdBill)
+	if err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	fmt.Print(billPayload.IdBill)
+	_, err = tx.Exec("DELETE FROM bill_payment WHERE id_bill = $1", billPayload.IdBill)
+	if err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	totalVlPayments := 0.0
+	customPaymentCount := 0
+
+	for _, payment := range billPayload.Payments {
+		if payment.FgCustomPayment || payment.IdPayment == 0 {
+			totalVlPayments += payment.VlPayment
+			customPaymentCount++
+		}
+	}
+
+	personVlBill := (billPayload.VlBill - totalVlPayments) / float64(int(billPayload.QtPerson)-customPaymentCount)
+
+	for i := 0; i < int(billPayload.QtPerson); i++ {
+		dsPerson := fmt.Sprintf("Pessoa %d", i+1)
+		vlPayment := personVlBill
+		fgCustomPayment := false
+		fgPayed := false
+		fmt.Print(billPayload.QtPerson)
+		if i < len(billPayload.Payments) {
+			fgCustomPayment = true
+			dsPerson = billPayload.Payments[i].DsPerson
+			fgPayed = billPayload.Payments[i].FgPayed
+			vlPayment = billPayload.Payments[i].VlPayment
+		}
+
+		_, err := tx.Exec("INSERT INTO bill_payment (vl_payment, ds_person, fg_payed, fg_custom_payment, id_bill) VALUES ($1, $2, $3, $4, $5)",
+			vlPayment,
+			dsPerson,
+			fgPayed,
+			fgCustomPayment,
+			billPayload.IdBill,
 		)
 		if err != nil {
 			tx.Rollback()
