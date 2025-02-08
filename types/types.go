@@ -52,10 +52,10 @@ type Bill struct {
 }
 
 type BillPayment struct {
-	IdPayment       int          `json:"idPayment"`
-	IdBill          int          `json:"idBill"`
-	VlPayment       float64      `json:"vlPayment"`
-	FgPayed         bool         `json:"fgPayed"`
-	FgCustomPayment bool         `json:"fgCustomPayment,omitempty"`
-	DsPerson        string       `json:"dsPerson"`
+	IdPayment       int     `json:"idPayment"`
+	IdBill          int     `json:"idBill"`
+	VlPayment       float64 `json:"vlPayment"`
+	FgPayed         bool    `json:"fgPayed"`
+	FgCustomPayment bool    `json:"fgCustomPayment"`
+	DsPerson        string  `json:"dsPerson"`
 }

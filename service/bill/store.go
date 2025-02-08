@@ -170,7 +170,7 @@ func (s *Store) UpdateBill(billPayload types.Bill) error {
 		vlPayment := personVlBill
 		fgCustomPayment := false
 		fgPayed := false
-		fmt.Print(billPayload.QtPerson)
+
 		if i < len(billPayload.Payments) {
 			fgCustomPayment = true
 			dsPerson = billPayload.Payments[i].DsPerson
