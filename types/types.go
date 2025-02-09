@@ -26,20 +26,10 @@ type CreateRidePayload struct {
 	DsRide         string        `json:"dsRide" validate:"required"`
 	VlRide         float64       `json:"vlRide" validate:"required"`
 	DtInit         time.Time     `json:"dtInit" validate:"required"`
+	QtRide         int           `json:"qtRide"`
 	DtFinish       time.Time     `json:"dtFinish" validate:"required"`
 	FgCountWeekend bool          `json:"fgCountWeekend"`
 	Payments       []RidePayment `json:"payments" validate:"required"`
-}
-
-type UpdateRidePayload struct {
-	DsRide           string            `json:"dsRide" validate:"required"`
-	VlRide           float64           `json:"vlRide" validate:"required"`
-	QtPerson         int               `json:"qtPerson" validate:"required"`
-	DtInit           time.Time         `json:"dtInit" validate:"required"`
-	DtFinish         time.Time         `json:"dtFinish" validate:"required"`
-	FgCountWeekend   bool              `json:"fgCountWeekend"`
-	GroupedPresences []GroupedPresence `json:"groupedPresences"`
-	Payments         []RidePayment     `json:"payments"`
 }
 
 type UserStore interface {
@@ -59,7 +49,7 @@ type RideStore interface {
 	GetRides() ([]Ride, error)
 	GetRideById(id int) (*Ride, error)
 	CreateRide(r Ride) error
-	// UpdateRide(r Ride) error
+	UpdateRide(r Ride) error
 }
 
 type User struct {
@@ -93,6 +83,7 @@ type Ride struct {
 	VlRide           float64           `json:"vlRide"`
 	DtInit           time.Time         `json:"dtInit"`
 	DtFinish         time.Time         `json:"dtFinish"`
+	QtRide           int               `json:"qtRide"`
 	FgCountWeekend   bool              `json:"fgCountWeekend"`
 	GroupedPresences []GroupedPresence `json:"groupedPresences"`
 	Payments         []RidePayment     `json:"payments"`

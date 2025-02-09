@@ -4,6 +4,7 @@ CREATE TABLE "ride"(
     "vl_ride" DECIMAL(10, 2) NOT NULL,
     "dt_init" DATE NOT NULL,
     "dt_finish" DATE NOT NULL,
+    "qt_ride" INTEGER NOT NULL DEFAULT 1,
     "fg_count_weekend" BOOLEAN NOT NULL DEFAULT FALSE
 );
 
