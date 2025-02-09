@@ -2,6 +2,7 @@ package ride
 
 import (
 	"database/sql"
+	"fmt"
 	"time"
 
 	"github.com/gfmanica/splitz-backend/types"

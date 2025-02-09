@@ -136,6 +136,7 @@ func convertToRidePayments(createPayments []types.RidePayment) []types.RidePayme
 
 	for i, createPayment := range createPayments {
 		ridePayments[i] = types.RidePayment{
+			IdRidePayment: createPayment.IdRidePayment,
 			DsPerson:  createPayment.DsPerson,
 			VlPayment: createPayment.VlPayment,
 			FgPayed:   createPayment.FgPayed,
