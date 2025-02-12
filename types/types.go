@@ -43,6 +43,7 @@ type BillStore interface {
 	GetBillById(id int) (*Bill, error)
 	CreateBill(b Bill) error
 	UpdateBill(b Bill) error
+	DeleteBill(id int) error
 }
 
 type RideStore interface {
@@ -50,6 +51,7 @@ type RideStore interface {
 	GetRideById(id int) (*Ride, error)
 	CreateRide(r Ride) error
 	UpdateRide(r Ride) error
+	DeleteRide(id int) error
 }
 
 type User struct {

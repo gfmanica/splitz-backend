@@ -347,6 +347,15 @@ func (s *Store) UpdateRide(ridePayload types.Ride) error {
 	return nil
 }
 
+func (s *Store) DeleteRide(id int) error {
+	_, err := s.db.Exec("DELETE FROM ride WHERE id_ride = $1", id)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func scanRowIntoRide(rows *sql.Rows) (*types.Ride, error) {
 	ride := &types.Ride{}
 

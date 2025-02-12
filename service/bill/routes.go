@@ -38,9 +38,10 @@ func NewHandler(store types.BillStore, userStore types.UserStore) *Handler {
 
 func (h *Handler) RegisterRoutes(router *mux.Router) {
 	router.HandleFunc("/bill", auth.WithJWTAuth(h.handleGetBills, h.userStore)).Methods(http.MethodGet)
-	router.HandleFunc("/bill/{id}", auth.WithJWTAuth(h.handleGetBill, h.userStore)).Methods(http.MethodGet)
 	router.HandleFunc("/bill", auth.WithJWTAuth(h.handleCreateBill, h.userStore)).Methods(http.MethodPost)
 	router.HandleFunc("/bill", auth.WithJWTAuth(h.handleUpdateBill, h.userStore)).Methods(http.MethodPut)
+	router.HandleFunc("/bill/{id}", auth.WithJWTAuth(h.handleGetBill, h.userStore)).Methods(http.MethodGet)
+	router.HandleFunc("/bill/{id}", auth.WithJWTAuth(h.handleDeleteBill, h.userStore)).Methods(http.MethodDelete)
 }
 
 func (h *Handler) handleGetBills(w http.ResponseWriter, r *http.Request) {
@@ -67,6 +68,7 @@ func (h *Handler) handleGetBill(w http.ResponseWriter, r *http.Request) {
 
 	utils.WriteJSON(w, http.StatusOK, bill)
 }
+
 func (h *Handler) handleUpdateBill(w http.ResponseWriter, r *http.Request) {
 	var payload types.Bill
 
@@ -127,4 +129,18 @@ func (h *Handler) handleCreateBill(w http.ResponseWriter, r *http.Request) {
 
 	utils.WriteJSON(w, http.StatusCreated, nil)
 
+}
+
+func (h *Handler) handleDeleteBill(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	id, _ := strconv.Atoi(vars["id"])
+
+	err := h.store.DeleteBill(id)
+
+	if err != nil {
+		utils.WriterError(w, http.StatusInternalServerError, err)
+		return
+	}
+
+	utils.WriteJSON(w, http.StatusOK, nil)
 }

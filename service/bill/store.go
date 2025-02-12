@@ -199,6 +199,15 @@ func (s *Store) UpdateBill(billPayload types.Bill) error {
 	return nil
 }
 
+func (s *Store) DeleteBill(id int) error {
+	_, err := s.db.Exec("DELETE FROM bill WHERE id_bill = $1", id)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func scanRowIntoBill(rows *sql.Rows) (*types.Bill, error) {
 	u := &types.Bill{}
 

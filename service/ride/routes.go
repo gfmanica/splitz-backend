@@ -27,9 +27,10 @@ func NewHandler(store types.RideStore, userStore types.UserStore) *Handler {
 
 func (h *Handler) RegisterRoutes(router *mux.Router) {
 	router.HandleFunc("/ride", auth.WithJWTAuth(h.handleGetRides, h.userStore)).Methods(http.MethodGet)
-	router.HandleFunc("/ride/{id}", auth.WithJWTAuth(h.handleGetRide, h.userStore)).Methods(http.MethodGet)
 	router.HandleFunc("/ride", auth.WithJWTAuth(h.handleCreateRide, h.userStore)).Methods(http.MethodPost)
 	router.HandleFunc("/ride", auth.WithJWTAuth(h.handleUpdateRide, h.userStore)).Methods(http.MethodPut)
+	router.HandleFunc("/ride/{id}", auth.WithJWTAuth(h.handleGetRide, h.userStore)).Methods(http.MethodGet)
+	router.HandleFunc("/ride/{id}", auth.WithJWTAuth(h.handleDeleteRide, h.userStore)).Methods(http.MethodDelete)
 }
 
 func (h *Handler) handleGetRides(w http.ResponseWriter, r *http.Request) {
@@ -130,6 +131,21 @@ func (h *Handler) handleCreateRide(w http.ResponseWriter, r *http.Request) {
 
 	utils.WriteJSON(w, http.StatusCreated, nil)
 }
+
+func (h *Handler) handleDeleteRide(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	id, _ := strconv.Atoi(vars["id"])
+
+	err := h.store.DeleteRide(id)
+
+	if err != nil {
+		utils.WriterError(w, http.StatusInternalServerError, err)
+		return
+	}
+
+	utils.WriteJSON(w, http.StatusOK, nil)
+}
+
 
 func convertToRidePayments(createPayments []types.RidePayment) []types.RidePayment {
 	ridePayments := make([]types.RidePayment, len(createPayments))
