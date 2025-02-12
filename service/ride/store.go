@@ -2,6 +2,7 @@ package ride
 
 import (
 	"database/sql"
+	"fmt"
 	"time"
 
 	"github.com/gfmanica/splitz-backend/types"
@@ -246,8 +247,21 @@ func (s *Store) UpdateRide(ridePayload types.Ride) error {
 		}
 	}
 
-	// Lida com as presenças
-	// Se houver alteração nas datas ou na flag de fim de semana, delete todas as presenças
+	// Após atualizar/inserir/excluir os pagamentos, recupere os IDs válidos:
+	paymentIDs := []int{}
+	rows, err = tx.Query(`SELECT id_ride_payment FROM ride_payment WHERE id_ride = $1`, ridePayload.IdRide)
+	if err != nil {
+		tx.Rollback()
+		return err
+	}
+	for rows.Next() {
+		var pid int
+		rows.Scan(&pid)
+		paymentIDs = append(paymentIDs, pid)
+	}
+	rows.Close()
+
+	// Lida com as presenças: delete as antigas e insere com base na nova grade
 	_, err = tx.Exec(`
 		DELETE FROM presence 
 		WHERE id_ride_payment IN (SELECT id_ride_payment FROM ride_payment WHERE id_ride = $1)
@@ -257,15 +271,14 @@ func (s *Store) UpdateRide(ridePayload types.Ride) error {
 		return err
 	}
 
-	// Insere as presenças conforme a nova grade, considerando possíveis atualizações enviadas no groupedPresences
+	// Insere as presenças conforme a nova grade iterando de DtInit a DtFinish
 	currentDate := ridePayload.DtInit
 	for !currentDate.After(ridePayload.DtFinish) {
-		// Aplica a regra de fim de semana
 		if ridePayload.FgCountWeekend || (currentDate.Weekday() != time.Saturday && currentDate.Weekday() != time.Sunday) {
-			for id := range payloadPaymentsIDs {
-				// Procura se há qtPresence para este dia e payment enviado do front (se não, usa 0)
+			for _, id := range paymentIDs {
 				qtPresence := 0
 				found := false
+				// Se houver atualização para o dia, utiliza o qt_presence enviado
 				for _, gp := range ridePayload.GroupedPresences {
 					if gp.DtRide.Equal(currentDate) {
 						for _, ps := range gp.Presences {
@@ -293,17 +306,16 @@ func (s *Store) UpdateRide(ridePayload types.Ride) error {
 		currentDate = currentDate.AddDate(0, 0, 1)
 	}
 
-	// Recalcula e atualiza os valores de cada pagamento (vl_payment)
-	// A lógica agrupa por dia e, em cada dia, distribui (vlRide * qtRide) proporcionalmente à qtPresence
+	// Recalcula e atualiza os vl_payment
 	paymentTotals := make(map[int]float64)
-	date := ridePayload.DtInit
-	for !date.After(ridePayload.DtFinish) {
-		if ridePayload.FgCountWeekend || (date.Weekday() != time.Saturday && date.Weekday() != time.Sunday) {
+	currentDate = ridePayload.DtInit
+	for !currentDate.After(ridePayload.DtFinish) {
+		if ridePayload.FgCountWeekend || (currentDate.Weekday() != time.Saturday && currentDate.Weekday() != time.Sunday) {
 			rows, err := tx.Query(`
 				SELECT id_ride_payment, qt_presence 
 				FROM presence 
 				WHERE dt_ride = $1
-			`, date)
+			`, currentDate)
 			if err != nil {
 				tx.Rollback()
 				return err
@@ -312,23 +324,29 @@ func (s *Store) UpdateRide(ridePayload types.Ride) error {
 			dailyPresences := make(map[int]int)
 			for rows.Next() {
 				var pid, qt int
-				rows.Scan(&pid, &qt)
+				if err := rows.Scan(&pid, &qt); err != nil {
+					rows.Close()
+					tx.Rollback()
+					return err
+				}
 				dailyPresences[pid] = qt
 				dailyTotal += qt
 			}
 			rows.Close()
+
 			if dailyTotal > 0 {
 				dailyCost := ridePayload.VlRide * float64(ridePayload.QtRide)
+				fmt.Println("dailyTotal", dailyCost)
+
 				for pid, qt := range dailyPresences {
 					share := (float64(qt) / float64(dailyTotal)) * dailyCost
 					paymentTotals[pid] += share
 				}
 			}
 		}
-		date = date.AddDate(0, 0, 1)
+		currentDate = currentDate.AddDate(0, 0, 1)
 	}
 
-	// Atualiza os vl_payment dos pagamentos
 	for pid, total := range paymentTotals {
 		_, err = tx.Exec(`
 			UPDATE ride_payment SET vl_payment = $1 WHERE id_ride_payment = $2
@@ -345,6 +363,15 @@ func (s *Store) UpdateRide(ridePayload types.Ride) error {
 	}
 
 	return nil
+}
+
+// Função auxiliar para extrair as chaves de um map[int]bool
+func mapKeys(m map[int]bool) []int {
+	keys := make([]int, 0, len(m))
+	for k := range m {
+		keys = append(keys, k)
+	}
+	return keys
 }
 
 func (s *Store) DeleteRide(id int) error {

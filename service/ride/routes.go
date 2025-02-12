@@ -76,6 +76,7 @@ func (h *Handler) handleUpdateRide(w http.ResponseWriter, r *http.Request) {
 		IdRide:           payload.IdRide,
 		DsRide:           payload.DsRide,
 		VlRide:           payload.VlRide,
+		QtRide:           payload.QtRide,
 		DtInit:           payload.DtInit,
 		DtFinish:         payload.DtFinish,
 		FgCountWeekend:   payload.FgCountWeekend,
