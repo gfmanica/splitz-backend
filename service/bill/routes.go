@@ -22,8 +22,10 @@ func convertToBillPayments(createPayments []types.BillPayment) []types.BillPayme
 
 	for i, createPayment := range createPayments {
 		billPayments[i] = types.BillPayment{
-			DsPerson:  createPayment.DsPerson,
-			VlPayment: createPayment.VlPayment,
+			DsPerson:        createPayment.DsPerson,
+			VlPayment:       createPayment.VlPayment,
+			FgPayed:         createPayment.FgPayed,
+			FgCustomPayment: createPayment.FgCustomPayment,
 		}
 	}
 	return billPayments
