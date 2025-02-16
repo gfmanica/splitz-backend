@@ -16,13 +16,15 @@ import (
 
 type contextKey string
 
-const UserKey contextKey = "userID"
+const UserKey contextKey = "id"
 
-func CreateJWT(secret []byte, userID int) (string, error) {
+func CreateJWT(secret []byte, user *types.User) (string, error) {
 	expiration := time.Second * time.Duration(config.Envs.JWTExpirationInSeconds)
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-		"userID":    strconv.Itoa(userID),
+		"id":        strconv.Itoa(user.ID),
+		"name":      user.Name,
+		"email":     user.Email,
 		"expiredAt": time.Now().Add(expiration).Unix(),
 	})
 
@@ -58,7 +60,7 @@ func WithJWTAuth(handlerFunc http.HandlerFunc, store types.UserStore) http.Handl
 		}
 
 		claims := token.Claims.(jwt.MapClaims)
-		str := claims["userID"].(string)
+		str := claims["id"].(string)
 
 		userID, _ := strconv.Atoi(str)
 
