@@ -54,7 +54,7 @@ func (s *Store) GetRideById(id int) (*types.Ride, error) {
 		}
 	}
 
-	paymentRows, err := s.db.Query("SELECT id_ride_payment, vl_payment,  ds_person, fg_payed FROM ride_payment WHERE id_ride = $1", id)
+	paymentRows, err := s.db.Query("SELECT id_ride_payment, vl_payment,  ds_person, fg_payed FROM ride_payment WHERE id_ride = $1 ORDER BY id_ride_payment ASC", id)
 	if err != nil {
 		return nil, err
 	}
