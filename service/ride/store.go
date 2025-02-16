@@ -3,6 +3,7 @@ package ride
 import (
 	"database/sql"
 	"fmt"
+	"sort"
 	"time"
 
 	"github.com/gfmanica/splitz-backend/types"
@@ -17,7 +18,7 @@ func NewStore(db *sql.DB) *Store {
 }
 
 func (s *Store) GetRides() ([]types.Ride, error) {
-	rows, err := s.db.Query("SELECT id_ride, ds_ride, vl_ride,  dt_init, dt_finish, fg_count_weekend, qt_ride FROM ride")
+	rows, err := s.db.Query("SELECT id_ride, ds_ride, vl_ride,  dt_init, dt_finish, fg_count_weekend, qt_ride FROM ride ORDER BY id_ride DESC")
 
 	if err != nil {
 		return nil, err
@@ -95,10 +96,21 @@ func (s *Store) GetRideById(id int) (*types.Ride, error) {
 		groupMap[key] = append(groupMap[key], p)
 	}
 
-	for _, ps := range groupMap {
+	// Ordenar as datas e as presenças dentro de cada data
+	var sortedDates []string
+	for date := range groupMap {
+		sortedDates = append(sortedDates, date)
+	}
+	sort.Strings(sortedDates)
+
+	for _, date := range sortedDates {
+		presences := groupMap[date]
+		sort.Slice(presences, func(i, j int) bool {
+			return presences[i].IdRidePayment < presences[j].IdRidePayment
+		})
 		ride.GroupedPresences = append(ride.GroupedPresences, types.GroupedPresence{
-			DtRide:    ps[0].DtRide,
-			Presences: ps,
+			DtRide:    presences[0].DtRide,
+			Presences: presences,
 		})
 	}
 
