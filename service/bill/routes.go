@@ -26,6 +26,8 @@ func convertToBillPayments(createPayments []types.BillPayment) []types.BillPayme
 			VlPayment:       createPayment.VlPayment,
 			FgPayed:         createPayment.FgPayed,
 			FgCustomPayment: createPayment.FgCustomPayment,
+			IdBillPayment:   createPayment.IdBillPayment,
+			IdBill:          createPayment.IdBill,
 		}
 	}
 	return billPayments
