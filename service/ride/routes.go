@@ -114,7 +114,7 @@ func (h *Handler) handleCreateRide(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err := h.store.CreateRide(types.Ride{
+	ride, err := h.store.CreateRide(types.Ride{
 		DsRide:         payload.DsRide,
 		VlRide:         payload.VlRide,
 		DtInit:         payload.DtInit,
@@ -130,7 +130,7 @@ func (h *Handler) handleCreateRide(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	utils.WriteJSON(w, http.StatusCreated, nil)
+	utils.WriteJSON(w, http.StatusCreated, ride)
 }
 
 func (h *Handler) handleDeleteRide(w http.ResponseWriter, r *http.Request) {

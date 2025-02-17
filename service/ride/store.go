@@ -121,10 +121,10 @@ func (s *Store) GetRideById(id int) (*types.Ride, error) {
 	return ride, nil
 }
 
-func (s *Store) CreateRide(ridePayload types.Ride) error {
+func (s *Store) CreateRide(ridePayload types.Ride) (*types.Ride, error) {
 	tx, err := s.db.Begin()
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	var id int
@@ -140,7 +140,7 @@ func (s *Store) CreateRide(ridePayload types.Ride) error {
 	).Scan(&id)
 	if err != nil {
 		tx.Rollback()
-		return err
+		return nil, err
 	}
 
 	var paymentIDs []int
@@ -158,7 +158,7 @@ func (s *Store) CreateRide(ridePayload types.Ride) error {
 		).Scan(&pid)
 		if err != nil {
 			tx.Rollback()
-			return err
+			return nil, err
 		}
 		paymentIDs = append(paymentIDs, pid)
 	}
@@ -174,7 +174,7 @@ func (s *Store) CreateRide(ridePayload types.Ride) error {
 				`, id, currentDate)
 				if err != nil {
 					tx.Rollback()
-					return err
+					return nil, err
 				}
 			}
 		}
@@ -183,10 +183,10 @@ func (s *Store) CreateRide(ridePayload types.Ride) error {
 
 	err = tx.Commit()
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	return nil
+	return s.GetRideById(id)
 }
 
 func (s *Store) UpdateRide(ridePayload types.Ride) error {

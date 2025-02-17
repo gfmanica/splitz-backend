@@ -73,10 +73,10 @@ func (s *Store) GetBillById(id int) (*types.Bill, error) {
 	return bill, nil
 }
 
-func (s *Store) CreateBill(billPayload types.Bill) error {
+func (s *Store) CreateBill(billPayload types.Bill) (*types.Bill, error) {
 	tx, err := s.db.Begin()
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	var id int
@@ -84,7 +84,7 @@ func (s *Store) CreateBill(billPayload types.Bill) error {
 	err = tx.QueryRow("INSERT INTO bill (ds_bill, vl_bill, qt_person) VALUES ($1, $2, $3) RETURNING id_bill", billPayload.DsBill, billPayload.VlBill, billPayload.QtPerson).Scan(&id)
 	if err != nil {
 		tx.Rollback()
-		return err
+		return nil, err
 	}
 
 	fmt.Print(id)
@@ -121,16 +121,16 @@ func (s *Store) CreateBill(billPayload types.Bill) error {
 		)
 		if err != nil {
 			tx.Rollback()
-			return err
+			return nil, err
 		}
 	}
 
 	err = tx.Commit()
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	return nil
+	return s.GetBillById(id)
 }
 
 func (s *Store) UpdateBill(billPayload types.Bill) error {

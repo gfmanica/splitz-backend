@@ -41,7 +41,7 @@ type UserStore interface {
 type BillStore interface {
 	GetBills() ([]Bill, error)
 	GetBillById(id int) (*Bill, error)
-	CreateBill(b Bill) error
+	CreateBill(b Bill) (*Bill, error)
 	UpdateBill(b Bill) error
 	DeleteBill(id int) error
 }
@@ -49,7 +49,7 @@ type BillStore interface {
 type RideStore interface {
 	GetRides() ([]Ride, error)
 	GetRideById(id int) (*Ride, error)
-	CreateRide(r Ride) error
+	CreateRide(r Ride) (*Ride, error)
 	UpdateRide(r Ride) error
 	DeleteRide(id int) error
 }

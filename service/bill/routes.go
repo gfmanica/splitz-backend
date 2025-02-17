@@ -118,7 +118,7 @@ func (h *Handler) handleCreateBill(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err := h.store.CreateBill(types.Bill{
+	bill, err := h.store.CreateBill(types.Bill{
 		DsBill:   payload.DsBill,
 		VlBill:   payload.VlBill,
 		QtPerson: payload.QtPerson,
@@ -131,8 +131,7 @@ func (h *Handler) handleCreateBill(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	utils.WriteJSON(w, http.StatusCreated, nil)
-
+	utils.WriteJSON(w, http.StatusCreated, bill)
 }
 
 func (h *Handler) handleDeleteBill(w http.ResponseWriter, r *http.Request) {
