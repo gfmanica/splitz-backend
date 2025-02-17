@@ -17,8 +17,8 @@ func NewStore(db *sql.DB) *Store {
 	return &Store{db: db}
 }
 
-func (s *Store) GetRides() ([]types.Ride, error) {
-	rows, err := s.db.Query("SELECT id_ride, ds_ride, vl_ride,  dt_init, dt_finish, fg_count_weekend, qt_ride FROM ride ORDER BY id_ride DESC")
+func (s *Store) GetRides(userId int) ([]types.Ride, error) {
+	rows, err := s.db.Query("SELECT id_ride, ds_ride, vl_ride,  dt_init, dt_finish, fg_count_weekend, qt_ride FROM ride WHERE id_user = $1 ORDER BY id_ride DESC", userId)
 
 	if err != nil {
 		return nil, err
@@ -121,7 +121,7 @@ func (s *Store) GetRideById(id int) (*types.Ride, error) {
 	return ride, nil
 }
 
-func (s *Store) CreateRide(ridePayload types.Ride) (*types.Ride, error) {
+func (s *Store) CreateRide(ridePayload types.Ride, userId int) (*types.Ride, error) {
 	tx, err := s.db.Begin()
 	if err != nil {
 		return nil, err
@@ -129,14 +129,15 @@ func (s *Store) CreateRide(ridePayload types.Ride) (*types.Ride, error) {
 
 	var id int
 	err = tx.QueryRow(`
-		INSERT INTO ride (ds_ride, vl_ride,  dt_init, dt_finish, fg_count_weekend)
-		VALUES ($1, $2, $3, $4, $5) RETURNING id_ride
+		INSERT INTO ride (ds_ride, vl_ride,  dt_init, dt_finish, fg_count_weekend, id_user)
+		VALUES ($1, $2, $3, $4, $5, $6) RETURNING id_ride
 	`,
 		ridePayload.DsRide,
 		ridePayload.VlRide,
 		ridePayload.DtInit,
 		ridePayload.DtFinish,
 		ridePayload.FgCountWeekend,
+		userId,
 	).Scan(&id)
 	if err != nil {
 		tx.Rollback()

@@ -15,8 +15,8 @@ func NewStore(db *sql.DB) *Store {
 	return &Store{db: db}
 }
 
-func (s *Store) GetBills() ([]types.Bill, error) {
-	rows, err := s.db.Query("SELECT * FROM bill ORDER BY id_bill DESC")
+func (s *Store) GetBills(userId int) ([]types.Bill, error) {
+	rows, err := s.db.Query("SELECT * FROM bill WHERE id_user = $1 ORDER BY id_bill DESC", userId)
 
 	if err != nil {
 		return nil, err
@@ -73,7 +73,7 @@ func (s *Store) GetBillById(id int) (*types.Bill, error) {
 	return bill, nil
 }
 
-func (s *Store) CreateBill(billPayload types.Bill) (*types.Bill, error) {
+func (s *Store) CreateBill(billPayload types.Bill, userId int) (*types.Bill, error) {
 	tx, err := s.db.Begin()
 	if err != nil {
 		return nil, err
@@ -81,7 +81,7 @@ func (s *Store) CreateBill(billPayload types.Bill) (*types.Bill, error) {
 
 	var id int
 
-	err = tx.QueryRow("INSERT INTO bill (ds_bill, vl_bill, qt_person) VALUES ($1, $2, $3) RETURNING id_bill", billPayload.DsBill, billPayload.VlBill, billPayload.QtPerson).Scan(&id)
+	err = tx.QueryRow("INSERT INTO bill (ds_bill, vl_bill, qt_person, id_user) VALUES ($1, $2, $3, $4) RETURNING id_bill", billPayload.DsBill, billPayload.VlBill, billPayload.QtPerson, userId).Scan(&id)
 	if err != nil {
 		tx.Rollback()
 		return nil, err

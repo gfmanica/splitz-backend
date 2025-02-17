@@ -49,7 +49,9 @@ func (h *Handler) RegisterRoutes(router *mux.Router) {
 }
 
 func (h *Handler) handleGetBills(w http.ResponseWriter, r *http.Request) {
-	bills, err := h.store.GetBills()
+	userId := auth.GetUserIDFromContext(r.Context())
+
+	bills, err := h.store.GetBills(userId)
 
 	if err != nil {
 		utils.WriterError(w, http.StatusInternalServerError, err)
@@ -118,12 +120,13 @@ func (h *Handler) handleCreateBill(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	userId := auth.GetUserIDFromContext(r.Context())
 	bill, err := h.store.CreateBill(types.Bill{
 		DsBill:   payload.DsBill,
 		VlBill:   payload.VlBill,
 		QtPerson: payload.QtPerson,
 		Payments: convertToBillPayments(payload.Payments),
-	})
+	}, userId)
 
 	if err != nil {
 		utils.WriterError(w, http.StatusBadRequest, err)

@@ -34,14 +34,15 @@ func (h *Handler) RegisterRoutes(router *mux.Router) {
 }
 
 func (h *Handler) handleGetRides(w http.ResponseWriter, r *http.Request) {
-	Rides, err := h.store.GetRides()
+	userId := auth.GetUserIDFromContext(r.Context())
+	rides, err := h.store.GetRides(userId)
 
 	if err != nil {
 		utils.WriterError(w, http.StatusInternalServerError, err)
 		return
 	}
 
-	utils.WriteJSON(w, http.StatusOK, Rides)
+	utils.WriteJSON(w, http.StatusOK, rides)
 }
 
 func (h *Handler) handleGetRide(w http.ResponseWriter, r *http.Request) {
@@ -100,20 +101,20 @@ func (h *Handler) handleUpdateRide(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) handleCreateRide(w http.ResponseWriter, r *http.Request) {
-	// get the JSON payload
 	var payload types.CreateRidePayload
 
 	if err := utils.ParseJSON(r, &payload); err != nil {
 		utils.WriterError(w, http.StatusBadRequest, err)
+		return
 	}
 
 	if err := utils.Validate.Struct(payload); err != nil {
 		error := err.(validator.ValidationErrors)
 		utils.WriterError(w, http.StatusBadRequest, fmt.Errorf("invalid payload: %s", error))
-
 		return
 	}
 
+	userId := auth.GetUserIDFromContext(r.Context())
 	ride, err := h.store.CreateRide(types.Ride{
 		DsRide:         payload.DsRide,
 		VlRide:         payload.VlRide,
@@ -122,11 +123,10 @@ func (h *Handler) handleCreateRide(w http.ResponseWriter, r *http.Request) {
 		FgCountWeekend: payload.FgCountWeekend,
 		QtRide:         payload.QtRide,
 		Payments:       convertToRidePayments(payload.Payments),
-	})
+	}, userId)
 
 	if err != nil {
-		utils.WriterError(w, http.StatusBadRequest, err)
-
+		utils.WriterError(w, http.StatusInternalServerError, err)
 		return
 	}
 
@@ -147,16 +147,15 @@ func (h *Handler) handleDeleteRide(w http.ResponseWriter, r *http.Request) {
 	utils.WriteJSON(w, http.StatusOK, nil)
 }
 
-
 func convertToRidePayments(createPayments []types.RidePayment) []types.RidePayment {
 	ridePayments := make([]types.RidePayment, len(createPayments))
 
 	for i, createPayment := range createPayments {
 		ridePayments[i] = types.RidePayment{
 			IdRidePayment: createPayment.IdRidePayment,
-			DsPerson:  createPayment.DsPerson,
-			VlPayment: createPayment.VlPayment,
-			FgPayed:   createPayment.FgPayed,
+			DsPerson:      createPayment.DsPerson,
+			VlPayment:     createPayment.VlPayment,
+			FgPayed:       createPayment.FgPayed,
 		}
 	}
 	return ridePayments

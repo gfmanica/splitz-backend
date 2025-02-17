@@ -75,7 +75,7 @@ func WithJWTAuth(handlerFunc http.HandlerFunc, store types.UserStore) http.Handl
 		}
 
 		ctx := r.Context()
-		ctx = context.WithValue(ctx, UserKey, u)
+		ctx = context.WithValue(ctx, "userId", u.ID)
 		r = r.WithContext(ctx)
 
 		handlerFunc(w, r)
@@ -107,7 +107,8 @@ func permissionDenied(w http.ResponseWriter) {
 }
 
 func GetUserIDFromContext(ctx context.Context) int {
-	userID, ok := ctx.Value(UserKey).(int)
+	userID, ok := ctx.Value("userId").(int)
+	fmt.Println("userId", userID)
 
 	if !ok {
 		return -1
