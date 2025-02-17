@@ -16,7 +16,7 @@ func NewStore(db *sql.DB) *Store {
 }
 
 func (s *Store) GetBills() ([]types.Bill, error) {
-	rows, err := s.db.Query("SELECT * FROM bill")
+	rows, err := s.db.Query("SELECT * FROM bill ORDER BY id_bill DESC")
 
 	if err != nil {
 		return nil, err
@@ -51,7 +51,7 @@ func (s *Store) GetBillById(id int) (*types.Bill, error) {
 		}
 	}
 
-	paymentRows, err := s.db.Query("SELECT id_bill_payment, vl_payment,  ds_person, fg_payed, fg_custom_payment, id_bill FROM bill_payment WHERE id_bill = $1", id)
+	paymentRows, err := s.db.Query("SELECT id_bill_payment, vl_payment,  ds_person, fg_payed, fg_custom_payment, id_bill FROM bill_payment WHERE id_bill = $1 ORDER BY id_bill_payment ASC ", id)
 	if err != nil {
 		return nil, err
 	}
