@@ -5,7 +5,9 @@ CREATE TABLE "ride"(
     "dt_init" DATE NOT NULL,
     "dt_finish" DATE NOT NULL,
     "qt_ride" INTEGER NOT NULL DEFAULT 1,
-    "fg_count_weekend" BOOLEAN NOT NULL DEFAULT FALSE
+    "fg_count_weekend" BOOLEAN NOT NULL DEFAULT FALSE,
+    "id_user" INTEGER NOT NULL,
+    CONSTRAINT "ride_id_user_foreign" FOREIGN KEY("id_user") REFERENCES "users"("id_user")
 );
 
 

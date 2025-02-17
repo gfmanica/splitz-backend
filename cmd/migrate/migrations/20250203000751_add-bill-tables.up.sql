@@ -2,7 +2,9 @@ CREATE TABLE "bill"(
     "id_bill" SERIAL PRIMARY KEY,
     "ds_bill" VARCHAR(255) NOT NULL,
     "vl_bill" DECIMAL(10, 2) NOT NULL,
-    "qt_person" INTEGER NOT NULL
+    "qt_person" INTEGER NOT NULL,
+    "id_user" INTEGER NOT NULL,
+    CONSTRAINT "bill_id_user_foreign" FOREIGN KEY("id_user") REFERENCES "users"("id_user")
 );
 
 CREATE TABLE "bill_payment"(
